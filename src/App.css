@@ -58,7 +58,7 @@
   animation: gradient-animation 4s ease infinite;
 }
 
-.submit-gif-button {
+.submit-pokemon-button {
   background: -webkit-linear-gradient(left, #4e44ce, #35aee2);
   background-size: 200% 200%;
   animation: gradient-animation 4s ease infinite;
@@ -87,7 +87,7 @@
   font-weight: bold;
 }
 
-.gif-grid {
+.pokemon-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
   grid-gap: 1.5rem;
@@ -96,7 +96,7 @@
   padding: 0;
 }
 
-.gif-grid .gif-item {
+.pokemon-grid .pokemon-item {
   display: flex;
   flex-direction: column;
   position: relative;
@@ -104,8 +104,8 @@
   align-self: center;
 }
 
-.gif-item img {
-  width: 100%;
+.pokemon-item img {
+  max-width: 100%;
   height: 300px;
   border-radius: 10px;
   object-fit: cover;
