@@ -1,16 +1,28 @@
 import React, { useEffect, useState } from 'react';
+import { Connection, PublicKey, clusterApiUrl } from '@solana/web3.js';
+import { Program, Provider, web3 } from '@project-serum/anchor';
 import twitterLogo from './assets/twitter-logo.svg';
 import './App.css';
+import idl from './idl.json';
+import kp from './keypair.json'
+
+const { SystemProgram, Keypair } = web3;
+
+const arr = Object.values(kp._keypair.secretKey)
+const secret = new Uint8Array(arr)
+const baseAccount = web3.Keypair.fromSecretKey(secret)
+
+const programID = new PublicKey(idl.metadata.address);
+
+const network = clusterApiUrl('devnet');
+
+const opts = {
+  preflightCommitment: "processed"
+}
 
 // Constants
 const TWITTER_HANDLE = 'Defi_Theory';
 const TWITTER_LINK = `https://twitter.com/${TWITTER_HANDLE}`;
-const TEST_POKEMONS = [
-  "https://img.pokemondb.net/artwork/large/pikachu.jpg", 
-  "https://img.pokemondb.net/artwork/large/charizard.jpg", 
-  "https://img.pokemondb.net/artwork/large/blastoise.jpg", 
-  "https://img.pokemondb.net/artwork/large/venusaur.jpg"
-]
 
 const App = () => {
   const [walletAddress, setWalletAddress] = useState(null)
@@ -64,39 +76,95 @@ const App = () => {
     setInputValue(value);
   };
 
+  const getProvider = () => {
+    const connection = new Connection(network, opts.preflightCommitment);
+    const provider = new Provider(
+      connection, window.solana, opts.preflightCommitment,
+    );
+    return provider;
+  }
+
+  const createGifAccount = async () => {
+    try {
+      const provider = getProvider();
+      const program = new Program(idl, programID, provider);
+      console.log("ping")
+      await program.rpc.startStuffOff({
+        accounts: {
+          baseAccount: baseAccount.publicKey,
+          user: provider.wallet.publicKey,
+          systemProgram: SystemProgram.programId,
+        },
+        signers: [baseAccount]
+      });
+      console.log("Created a new BaseAccount w/ address:", baseAccount.publicKey.toString())
+      await getGifList();
+  
+    } catch(error) {
+      console.log("Error creating BaseAccount account:", error)
+    }
+  }
+
   const sendPokemon = async () => {
-    if (inputValue.length > 0) {
-      console.log('Pokemon link:', inputValue);
-    } else {
-      console.log('Empty input. Try again.');
+    if (inputValue.length === 0) {
+      console.log("No gif link given!")
+      return
+    }
+    setInputValue('');
+    console.log('Gif link:', inputValue);
+    try {
+      const provider = getProvider();
+      const program = new Program(idl, programID, provider);
+  
+      await program.rpc.addGif(inputValue, {
+        accounts: {
+          baseAccount: baseAccount.publicKey,
+          user: provider.wallet.publicKey,
+        },
+      });
+      console.log("GIF successfully sent to program", inputValue)
+  
+      await getGifList();
+    } catch (error) {
+      console.log("Error sending GIF:", error)
     }
   };
 
-  const renderConnectedContainer = () => (
-    <div className="connected-container">
-      <form
-        onSubmit={(event) => {
-          event.preventDefault();
-          sendPokemon();
-        }}
-      >
-        <input   
-          type="text"
-          placeholder="Enter pokemon link!"
-          value={inputValue}
-          onChange={onInputChange} 
-        />
-        <button type="submit" className="cta-button submit-pokemon-button">Submit</button>
-      </form>
-      <div className="pokemon-grid">
-        {pokemonList.map((pokemon) => (
-          <div className="pokemon-item" key={pokemon}>
-            <img src={pokemon} alt={pokemon} />
-          </div>
-        ))}
+  const renderConnectedContainer = () => {
+    if (pokemonList === null) {
+      return (
+        <div className="connected-container">
+          <button className="cta-button submit-pokemon-button" onClick={createGifAccount}>
+            Do One-Time Initialization For GIF Program Account
+          </button>
+        </div>
+      )
+    } else {
+      return <div className="connected-container">
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            sendPokemon();
+          }}
+        >
+          <input   
+            type="text"
+            placeholder="Enter pokemon link!"
+            value={inputValue}
+            onChange={onInputChange} 
+          />
+          <button type="submit" className="cta-button submit-pokemon-button">Submit</button>
+        </form>
+        <div className="pokemon-grid">
+          {pokemonList.map((pokemon, index) => (
+            <div className="pokemon-item" key={index}>
+              <img src={pokemon.gifLink} alt={pokemon} />
+            </div>
+          ))}
+        </div>
       </div>
-    </div>
-  );
+    }
+  };
 
   useEffect(() => {
     const onLoad = async () => {
@@ -106,14 +174,25 @@ const App = () => {
     return () => window.removeEventListener('load', onLoad);
   }, []);
 
-  useEffect(() => {
+  const getGifList = async() => {
+    try {
+      const provider = getProvider();
+      const program = new Program(idl, programID, provider);
+      const account = await program.account.baseAccount.fetch(baseAccount.publicKey);
+      
+      console.log("Got the account", account)
+      setPokemonList(account.gifList)
+  
+    } catch (error) {
+      console.log("Error in getGifList: ", error)
+      setPokemonList(null);
+    }
+  }
+
+  useEffect(() => {  
     if (walletAddress) {
       console.log('Fetching POKEMON list...');
-      
-      // Call Solana program here.
-  
-      // Set state
-      setPokemonList(TEST_POKEMONS);
+      getGifList()
     }
   }, [walletAddress]);
 
