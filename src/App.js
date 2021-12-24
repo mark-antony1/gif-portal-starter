@@ -155,12 +155,13 @@ const App = () => {
           />
           <button type="submit" className="cta-button submit-pokemon-button">Submit</button>
         </form>
-        <div className="pokemon-grid">
-          {pokemonList.map((pokemon, index) => (
-            <div className="pokemon-item" key={index}>
-              <img src={pokemon.gifLink} alt={pokemon} />
+        <div className="pokemon-grid" style={{marginBottom: '140px'}}>
+          {pokemonList.map((pokemon, index) => {
+            return <div className="pokemon-item" key={index}>
+              By User: {pokemon.userAddress.toString()}
+              <img style={{width: '200px', height: "fit-content"}} src={pokemon.gifLink} alt={pokemon} />
             </div>
-          ))}
+          })}
         </div>
       </div>
     }
@@ -205,7 +206,7 @@ const App = () => {
           <p className="sub-text">
             View your POKEMON collection in the metaverse ✨
           </p>
-          {walletAddress ? walletAddress : ""}
+          {walletAddress ? "User Account: " + walletAddress : ""}
           {walletAddress ? renderConnectedContainer() : renderNotConnectedContainer()}
         </div>
         <div className="footer-container">
