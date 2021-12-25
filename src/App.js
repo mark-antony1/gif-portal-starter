@@ -105,6 +105,23 @@ const App = () => {
     }
   }
 
+  const upVotePokemon = async (index) => {
+    try {
+      const provider = getProvider();
+      const program = new Program(idl, programID, provider);
+      await program.rpc.updateItem(index.toString(), {
+        accounts: {
+          baseAccount: baseAccount.publicKey,
+        },
+      });
+      console.log("Upvoted pokemon")
+      await getGifList();
+  
+    } catch(error) {
+      console.log("Error upvoting pokemon ", error)
+    }
+  }
+
   const sendPokemon = async () => {
     if (inputValue.length === 0) {
       console.log("No gif link given!")
@@ -160,6 +177,8 @@ const App = () => {
             return <div className="pokemon-item" key={index}>
               By User: {pokemon.userAddress.toString()}
               <img style={{width: '200px', height: "fit-content"}} src={pokemon.gifLink} alt={pokemon} />
+              Upvotes: {pokemon.upvotes.toString()}
+              <input type='submit' onClick={() => upVotePokemon(index)}/>
             </div>
           })}
         </div>

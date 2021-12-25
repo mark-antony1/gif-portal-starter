@@ -43,6 +43,22 @@
           "type": "string"
         }
       ]
+    },
+    {
+      "name": "updateItem",
+      "accounts": [
+        {
+          "name": "baseAccount",
+          "isMut": true,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "id",
+          "type": "string"
+        }
+      ]
     }
   ],
   "accounts": [
@@ -80,6 +96,14 @@
           {
             "name": "userAddress",
             "type": "publicKey"
+          },
+          {
+            "name": "upvotes",
+            "type": "u64"
+          },
+          {
+            "name": "id",
+            "type": "string"
           }
         ]
       }
