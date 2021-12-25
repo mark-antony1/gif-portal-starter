@@ -122,6 +122,24 @@ const App = () => {
     }
   }
 
+  const deletePokemon = async (index) => {
+    try {
+      const provider = getProvider();
+      const program = new Program(idl, programID, provider);
+      await program.rpc.deleteGif(index.toString(), {
+        accounts: {
+          baseAccount: baseAccount.publicKey,
+          user: provider.wallet.publicKey,
+        },
+      });
+      console.log("deleted pokemon")
+      await getGifList();
+  
+    } catch(error) {
+      console.log("Error upvoting pokemon ", error)
+    }
+  }
+
   const sendPokemon = async () => {
     if (inputValue.length === 0) {
       console.log("No gif link given!")
@@ -179,6 +197,9 @@ const App = () => {
               <img style={{width: '200px', height: "fit-content"}} src={pokemon.gifLink} alt={pokemon} />
               Upvotes: {pokemon.upvotes.toString()}
               <input type='submit' onClick={() => upVotePokemon(index)}/>
+              <button onClick={() => deletePokemon(index)}>
+                  Delete
+              </button>
             </div>
           })}
         </div>
